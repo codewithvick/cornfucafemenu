@@ -72,32 +72,32 @@ export const MenuCard: React.FC<MenuCardProps> = ({ item }) => {
       </div>
 
       {/* Bottom Row: Bold Price in Nigerian Naira (₦) */}
-      <div className="pt-2 border-t border-slate-100/80 flex items-center justify-between mt-auto">
+      <div className="pt-2 border-t border-slate-100/80 mt-auto overflow-hidden">
         {item.price700ml ? (
-          <div className="flex items-baseline gap-1.5 sm:gap-2">
-            <div>
-              <span className="text-xs sm:text-base font-black text-brand tracking-tight">
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-slate-400 font-semibold uppercase">500ml</span>
+              <span className="text-xs sm:text-sm font-black text-brand tracking-tight">
                 ₦{item.price.toLocaleString()}
               </span>
-              <span className="text-[9px] text-slate-400 font-bold uppercase ml-0.5">500ml</span>
             </div>
-            <span className="text-slate-300 text-[10px]">•</span>
-            <div>
-              <span className="text-[11px] sm:text-xs font-bold text-slate-600">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-slate-400 font-semibold uppercase">700ml</span>
+              <span className="text-xs sm:text-sm font-bold text-slate-700 tracking-tight">
                 ₦{item.price700ml.toLocaleString()}
               </span>
-              <span className="text-[9px] text-slate-400 font-bold uppercase ml-0.5">700ml</span>
             </div>
           </div>
         ) : (
-          <span className="text-xs sm:text-base font-black text-brand tracking-tight">
-            ₦{item.price.toLocaleString()}
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs sm:text-base font-black text-brand tracking-tight">
+              ₦{item.price.toLocaleString()}
+            </span>
+            <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 group-hover:text-brand transition-colors">
+              Details →
+            </span>
+          </div>
         )}
-
-        <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 group-hover:text-brand transition-colors">
-          Details →
-        </span>
       </div>
     </div>
   );

@@ -21,12 +21,12 @@ export default function MenuPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'poster'>('grid');
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-slate-800">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-slate-800 overflow-x-hidden max-w-full">
       {/* 1. Brand Top Bar (Clean Digital Menu Header) */}
       <Header />
 
       {/* 2. Main Content Container (Mobile Responsive, Fully Centered) */}
-      <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-4 sm:py-6 overflow-hidden">
         {/* View Mode Toggle & Subtitle */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 mb-3 sm:mb-4">
           <div className="flex items-center gap-1.5 bg-white border border-slate-200/90 rounded-2xl p-1 shadow-xs w-full sm:w-auto">
@@ -50,14 +50,14 @@ export default function MenuPage() {
               }`}
             >
               <FileText className="w-3.5 h-3.5 text-amber-400" />
-              <span>Printed Menu Board</span>
+              <span>Menu Board</span>
             </button>
           </div>
 
           <p className="text-[11px] sm:text-xs text-slate-400 font-medium text-center sm:text-right">
             {viewMode === 'grid'
               ? 'Tap any item to view culinary details'
-              : 'Classic 2-column printed cafe board'}
+              : 'Classic 2-column cafe board'}
           </p>
         </div>
 

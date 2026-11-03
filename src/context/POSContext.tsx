@@ -63,7 +63,7 @@ interface POSContextType {
 
 const POSContext = createContext<POSContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = 'cornfu_cafe_menu_v11';
+const LOCAL_STORAGE_KEY = 'cornfu_cafe_menu_v12';
 const LOCAL_STORAGE_ORDERS_KEY = 'cornfu_cafe_orders_v1';
 const LOCAL_STORAGE_PRINTER_KEY = 'cornfu_cafe_printer_v1';
 
@@ -100,7 +100,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     try {
       // Clean up any old version storage keys
-      for (let i = 1; i <= 10; i++) {
+      for (let i = 1; i <= 11; i++) {
         localStorage.removeItem(`cornfu_cafe_menu_v${i}`);
       }
 
