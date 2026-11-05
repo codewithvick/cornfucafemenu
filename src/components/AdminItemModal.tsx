@@ -7,13 +7,18 @@ import { usePOS } from '../context/POSContext';
 import { CategoryId, MenuItem } from '../types';
 
 const IMAGE_PRESETS = [
-  { label: 'Shawarma', url: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=700&q=80' },
-  { label: 'Peppered Wings', url: 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=700&q=80' },
-  { label: 'Tacos', url: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=700&q=80' },
-  { label: 'Boba Tea', url: 'https://images.unsplash.com/photo-1558857563-b37cf5a043e7?auto=format&fit=crop&w=700&q=80' },
-  { label: 'Matcha', url: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=700&q=80' },
-  { label: 'Smoothie', url: 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?auto=format&fit=crop&w=700&q=80' },
-  { label: 'Burger/Sandwich', url: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=700&q=80' },
+  { label: 'Pineapple Juice', url: '/pineapple-juice.jpg' },
+  { label: 'Tigernut Drink', url: '/tigernut.jpg' },
+  { label: 'Beef Shawarma', url: '/beef-shawarma.jpg' },
+  { label: 'Chicken Shawarma', url: '/cornfu-shawarma.jpg' },
+  { label: 'Chicken Salad', url: '/chicken-salad.jpg' },
+  { label: 'Loaded Mishai', url: '/loaded-mishai.jpg' },
+  { label: 'Smoothie Cup', url: '/cornfu-smoothie.jpg' },
+  { label: 'Bubblegum Boba', url: '/bubblegum-boba.jpg' },
+  { label: 'Strawberry Matcha', url: '/strawberry-matcha.jpg' },
+  { label: 'Classic Boba', url: '/classic-boba.jpg' },
+  { label: 'Taro Boba', url: '/taro-boba.jpg' },
+  { label: 'Pistachio Boba', url: '/pistachio-boba.jpg' },
 ];
 
 export const AdminItemModal: React.FC = () => {
@@ -29,6 +34,7 @@ export const AdminItemModal: React.FC = () => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState<CategoryId>('food');
   const [price, setPrice] = useState<string>('4500');
+  const [price700ml, setPrice700ml] = useState<string>('');
   const [available, setAvailable] = useState<string>('30');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -40,6 +46,7 @@ export const AdminItemModal: React.FC = () => {
       setName(editingItem.name);
       setCategory(editingItem.category);
       setPrice(String(editingItem.price));
+      setPrice700ml(editingItem.price700ml ? String(editingItem.price700ml) : '');
       setAvailable(String(editingItem.available));
       setDescription(editingItem.description || '');
       setImageUrl(editingItem.image || '');
@@ -50,9 +57,10 @@ export const AdminItemModal: React.FC = () => {
       setName('');
       setCategory('food');
       setPrice('4500');
+      setPrice700ml('');
       setAvailable('25');
       setDescription('');
-      setImageUrl(IMAGE_PRESETS[0].url);
+      setImageUrl('/pineapple-juice.jpg');
       setTagInput('Chef Special');
       setIsAvailable(true);
     }
@@ -69,6 +77,7 @@ export const AdminItemModal: React.FC = () => {
     }
 
     const parsedPrice = parseInt(price, 10) || 0;
+    const parsedPrice700ml = price700ml.trim() ? parseInt(price700ml, 10) : undefined;
     const parsedStock = parseInt(available, 10) || 0;
     const tags = tagInput
       .split(',')
@@ -85,6 +94,7 @@ export const AdminItemModal: React.FC = () => {
         name: name.trim(),
         category,
         price: parsedPrice,
+        price700ml: parsedPrice700ml,
         available: parsedStock,
         description: description.trim(),
         image: fallbackImg,
@@ -97,6 +107,7 @@ export const AdminItemModal: React.FC = () => {
         name: name.trim(),
         category,
         price: parsedPrice,
+        price700ml: parsedPrice700ml,
         available: parsedStock,
         description: description.trim(),
         image: fallbackImg,
@@ -172,9 +183,11 @@ export const AdminItemModal: React.FC = () => {
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 font-medium focus:bg-white focus:outline-brand"
               >
                 <option value="food">Food Menu</option>
+                <option value="espresso">Espresso Menu</option>
                 <option value="boba">Boba Tea</option>
                 <option value="matcha">Matcha Drinks</option>
                 <option value="smoothies">Smoothies</option>
+                <option value="juice">Fruit Juice</option>
               </select>
             </div>
 
@@ -187,7 +200,7 @@ export const AdminItemModal: React.FC = () => {
                 <input
                   type="number"
                   min="0"
-                  step="100"
+                  step="50"
                   required
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
@@ -197,6 +210,27 @@ export const AdminItemModal: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Optional: Boba 700ml Large Price */}
+          {(category === 'boba' || Boolean(price700ml)) && (
+            <div>
+              <label className="text-xs font-bold uppercase text-slate-600 block mb-1">
+                700ml Large Price (₦ Naira) <span className="text-slate-400 font-normal lowercase">(optional)</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-2.5 text-sm font-bold text-emerald-600">₦</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="50"
+                  value={price700ml}
+                  onChange={(e) => setPrice700ml(e.target.value)}
+                  placeholder="e.g. 7500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3.5 py-2.5 text-sm text-slate-800 font-bold focus:bg-white focus:outline-brand"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Stock Count & Status Toggle */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
@@ -232,14 +266,14 @@ export const AdminItemModal: React.FC = () => {
           {/* Image URL & Preset Selection */}
           <div>
             <label className="text-xs font-bold uppercase text-slate-600 block mb-1">
-              Image URL or Food Preset
+              Image URL or Local Image Path
             </label>
             <div className="flex gap-2 mb-2">
               <input
-                type="url"
+                type="text"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
+                placeholder="/pineapple-juice.jpg or https://..."
                 className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-brand"
               />
             </div>
