@@ -63,7 +63,7 @@ interface POSContextType {
 
 const POSContext = createContext<POSContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = 'cornfu_cafe_menu_v12';
+const LOCAL_STORAGE_KEY = 'cornfu_cafe_menu_v13';
 const LOCAL_STORAGE_ORDERS_KEY = 'cornfu_cafe_orders_v1';
 const LOCAL_STORAGE_PRINTER_KEY = 'cornfu_cafe_printer_v1';
 
@@ -100,7 +100,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     try {
       // Clean up any old version storage keys
-      for (let i = 1; i <= 11; i++) {
+      for (let i = 1; i <= 12; i++) {
         localStorage.removeItem(`cornfu_cafe_menu_v${i}`);
       }
 
@@ -108,14 +108,15 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (savedMenu) {
         const parsed: MenuItem[] = JSON.parse(savedMenu);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Reconcile with latest INITIAL_MENU_ITEMS so curated images are always used
+          // Reconcile with latest INITIAL_MENU_ITEMS while preserving all user edits
           const reconciled = INITIAL_MENU_ITEMS.map((initialItem) => {
             const savedItem = parsed.find((p) => p.id === initialItem.id);
             if (savedItem) {
               return {
+                ...initialItem,
                 ...savedItem,
-                // Ensure latest authentic image is preserved
-                image: initialItem.image,
+                // Preserve user-edited image, falling back to default curated image
+                image: savedItem.image || initialItem.image,
               };
             }
             return initialItem;

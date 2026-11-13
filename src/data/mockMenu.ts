@@ -362,8 +362,8 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     price: 4000,
     available: 25,
     sold: 36,
-    // Real smoothie cup with fruit/berry tones
-    image: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=800&q=80',
+    // Real Cornfu Love Potion smoothie cup photo!
+    image: '/love-potion.jpg',
     description: 'Velvety banana smoothie blended with sweet beetroot, golden pineapple, dates, tiger nut, and fresh milk.',
     tags: ['Banana & Fruit 🍌'],
     isAvailable: true,

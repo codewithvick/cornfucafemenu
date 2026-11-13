@@ -13,6 +13,7 @@ const IMAGE_PRESETS = [
   { label: 'Chicken Shawarma', url: '/cornfu-shawarma.jpg' },
   { label: 'Chicken Salad', url: '/chicken-salad.jpg' },
   { label: 'Loaded Mishai', url: '/loaded-mishai.jpg' },
+  { label: 'Love Potion', url: '/love-potion.jpg' },
   { label: 'Smoothie Cup', url: '/cornfu-smoothie.jpg' },
   { label: 'Bubblegum Boba', url: '/bubblegum-boba.jpg' },
   { label: 'Strawberry Matcha', url: '/strawberry-matcha.jpg' },
