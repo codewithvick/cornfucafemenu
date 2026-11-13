@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { X, Upload, Sparkles, Check } from 'lucide-react';
+import { X, Upload, Sparkles, Check, Loader2, AlertCircle } from 'lucide-react';
 import { usePOS } from '../context/POSContext';
 import { CategoryId, MenuItem } from '../types';
+import { uploadImageToCloudinary } from '../utils/cloudinary';
 
 const IMAGE_PRESETS = [
   { label: 'Pineapple Juice', url: '/pineapple-juice.jpg' },
@@ -41,6 +42,34 @@ export const AdminItemModal: React.FC = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
+
+  // Cloudinary direct upload states
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadSuccess(false);
+
+    try {
+      const url = await uploadImageToCloudinary(file);
+      setImageUrl(url);
+      setUploadSuccess(true);
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload photo to Cloudinary');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   useEffect(() => {
     if (editingItem) {
@@ -264,25 +293,92 @@ export const AdminItemModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Image URL & Preset Selection */}
-          <div>
-            <label className="text-xs font-bold uppercase text-slate-600 block mb-1">
-              Image URL or Local Image Path
-            </label>
-            <div className="flex gap-2 mb-2">
+          {/* Image Upload & URL Selection */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase text-slate-600 block">
+                Item Photo (Cloudinary Direct Upload)
+              </label>
+              {imageUrl?.includes('cloudinary.com') && (
+                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Cloudinary Hosted
+                </span>
+              )}
+            </div>
+
+            {/* Direct Upload Box */}
+            <div
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all ${
+                isUploading
+                  ? 'border-brand/40 bg-orange-50/50 cursor-wait'
+                  : 'border-slate-200 hover:border-brand hover:bg-slate-50'
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+                disabled={isUploading}
+              />
+
+              {isUploading ? (
+                <div className="flex flex-col items-center justify-center py-2 text-brand">
+                  <Loader2 className="w-6 h-6 animate-spin mb-1.5 text-brand" />
+                  <span className="text-xs font-bold text-slate-800">
+                    Uploading directly to Cloudinary...
+                  </span>
+                  <span className="text-[10px] text-slate-400 mt-0.5">Please wait a moment</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-1">
+                  <div className="w-10 h-10 rounded-xl bg-orange-100/70 text-brand flex items-center justify-center mb-1.5 shadow-2xs">
+                    <Upload className="w-5 h-5 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs font-bold text-slate-800">
+                    Click to upload picture from phone or computer
+                  </span>
+                  <span className="text-[10px] text-slate-400 mt-0.5">
+                    Camera photos, JPG, PNG, WEBP (stored permanently on Cloudinary)
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {uploadError && (
+              <div className="flex items-center gap-1.5 text-xs text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{uploadError}</span>
+              </div>
+            )}
+
+            {uploadSuccess && (
+              <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                <Check className="w-4 h-4 flex-shrink-0 text-emerald-600" />
+                <span>Photo uploaded to Cloudinary successfully!</span>
+              </div>
+            )}
+
+            {/* URL Input (Editable / Fallback) */}
+            <div className="pt-1">
+              <label className="text-[11px] font-bold text-slate-500 block mb-1">
+                Or paste image URL / local path:
+              </label>
               <input
                 type="text"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="/pineapple-juice.jpg or https://..."
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-brand"
+                placeholder="/pineapple-juice.jpg or https://res.cloudinary.com/..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-brand"
               />
             </div>
 
             {/* Quick Presets */}
-            <div className="flex flex-wrap gap-1.5 items-center">
+            <div className="flex flex-wrap gap-1.5 items-center pt-1">
               <span className="text-[10px] font-semibold text-slate-400 mr-1 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-amber-500" /> Presets:
+                <Sparkles className="w-3 h-3 text-amber-500" /> Quick Presets:
               </span>
               {IMAGE_PRESETS.map((preset) => (
                 <button
@@ -302,14 +398,20 @@ export const AdminItemModal: React.FC = () => {
 
             {/* Preview image */}
             {imageUrl && (
-              <div className="mt-2 relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-xs">
-                <Image
-                  src={imageUrl}
-                  alt="Preview"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
+              <div className="mt-2.5 flex items-center gap-3 p-2.5 bg-slate-50 rounded-2xl border border-slate-200/80">
+                <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-slate-200 shadow-2xs flex-shrink-0 bg-slate-100">
+                  <Image
+                    src={imageUrl}
+                    alt="Preview"
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] font-bold text-slate-800 block">Photo Preview</span>
+                  <span className="text-[10px] text-slate-400 truncate block mt-0.5">{imageUrl}</span>
+                </div>
               </div>
             )}
           </div>
@@ -361,10 +463,24 @@ export const AdminItemModal: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-white text-xs font-bold shadow-md shadow-brand/20 transition-all active:scale-95 flex items-center gap-1.5"
+              disabled={isUploading}
+              className={`px-6 py-2.5 rounded-xl text-white text-xs font-bold shadow-md shadow-brand/20 transition-all flex items-center gap-1.5 ${
+                isUploading
+                  ? 'bg-slate-400 cursor-not-allowed'
+                  : 'bg-brand hover:bg-brand-600 active:scale-95'
+              }`}
             >
-              <Check className="w-4 h-4 stroke-[2.5]" />
-              <span>{editingItem ? 'Save Changes' : 'Publish Item'}</span>
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Uploading Photo...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 stroke-[2.5]" />
+                  <span>{editingItem ? 'Save Changes' : 'Publish Item'}</span>
+                </>
+              )}
             </button>
           </div>
         </form>
