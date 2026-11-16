@@ -54,3 +54,4 @@ export async function uploadImageToCloudinary(
   const data: CloudinaryUploadResponse = await res.json();
   return data.secure_url;
 }
+

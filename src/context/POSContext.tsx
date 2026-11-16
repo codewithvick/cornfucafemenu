@@ -3,6 +3,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MenuItem, CategoryId, CartItem, Order, PaymentMethod, PrinterConfig } from '../types';
 import { INITIAL_MENU_ITEMS } from '../data/mockMenu';
+import {
+  subscribeToProductsCloud,
+  saveProductToCloud,
+  deleteProductFromCloud,
+} from '../services/menuService';
 
 interface POSContextType {
   menuItems: MenuItem[];
@@ -96,10 +101,10 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
   const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
 
-  // Load from LocalStorage on mount
+  // Load from LocalStorage on mount + real-time Cloud Sync
   useEffect(() => {
+    // 1. Immediate local load so the user sees the menu in 0ms without waiting for network
     try {
-      // Clean up any old version storage keys
       for (let i = 1; i <= 12; i++) {
         localStorage.removeItem(`cornfu_cafe_menu_v${i}`);
       }
@@ -108,20 +113,17 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (savedMenu) {
         const parsed: MenuItem[] = JSON.parse(savedMenu);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Reconcile with latest INITIAL_MENU_ITEMS while preserving all user edits
           const reconciled = INITIAL_MENU_ITEMS.map((initialItem) => {
             const savedItem = parsed.find((p) => p.id === initialItem.id);
             if (savedItem) {
               return {
                 ...initialItem,
                 ...savedItem,
-                // Preserve user-edited image, falling back to default curated image
                 image: savedItem.image || initialItem.image,
               };
             }
             return initialItem;
           });
-          // Also append any new custom items created in admin
           const customItems = parsed.filter(
             (p) => !INITIAL_MENU_ITEMS.some((i) => i.id === p.id)
           );
@@ -143,10 +145,29 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (e) {
       console.error('Failed to load POS local data', e);
     }
+
+    // 2. Real-time Firebase Firestore Subscription
+    // Any price change, new dish, or updated photo made on any phone or PC
+    // instantly syncs across all customer and staff devices in real-time!
+    const unsubscribe = subscribeToProductsCloud((cloudItems) => {
+      if (Array.isArray(cloudItems) && cloudItems.length > 0) {
+        setMenuItems(cloudItems);
+        try {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cloudItems));
+        } catch (e) {
+          // ignore
+        }
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   // Save changes to LocalStorage
   const saveMenuItems = (newItems: MenuItem[]) => {
+    // Immediate local update for instantaneous UI feedback
     setMenuItems(newItems);
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newItems));
@@ -286,43 +307,65 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addMenuItem = (itemData: Omit<MenuItem, 'id' | 'sold'>) => {
     const newItem: MenuItem = {
       ...itemData,
-      id: `cf-${itemData.category}-${Date.now().toString().slice(-4)}`,
+      id: `prod-${itemData.category}-${Date.now().toString().slice(-4)}`,
       sold: 0,
       createdAt: new Date().toISOString(),
     };
     saveMenuItems([newItem, ...menuItems]);
+    saveProductToCloud(newItem).catch((err) =>
+      console.error('Failed to sync added item to Cloud:', err)
+    );
   };
 
   const updateMenuItem = (updatedItem: MenuItem) => {
     const newItems = menuItems.map((item) => (item.id === updatedItem.id ? updatedItem : item));
     saveMenuItems(newItems);
+    saveProductToCloud(updatedItem).catch((err) =>
+      console.error('Failed to sync updated item to Cloud:', err)
+    );
   };
 
   const deleteMenuItem = (id: string) => {
     const newItems = menuItems.filter((item) => item.id !== id);
     saveMenuItems(newItems);
+    deleteProductFromCloud(id).catch((err) =>
+      console.error('Failed to delete item from Cloud:', err)
+    );
   };
 
   const toggleItemAvailability = (id: string) => {
+    let targetItem: MenuItem | undefined;
     const newItems = menuItems.map((item) => {
       if (item.id === id) {
-        const nextState = !item.isAvailable;
-        return { ...item, isAvailable: nextState };
+        targetItem = { ...item, isAvailable: !item.isAvailable };
+        return targetItem;
       }
       return item;
     });
     saveMenuItems(newItems);
+    if (targetItem) {
+      saveProductToCloud(targetItem).catch((err) =>
+        console.error('Failed to sync availability to Cloud:', err)
+      );
+    }
   };
 
   const updateStock = (id: string, amount: number) => {
+    let targetItem: MenuItem | undefined;
     const newItems = menuItems.map((item) => {
       if (item.id === id) {
         const newAvailable = Math.max(0, item.available + amount);
-        return { ...item, available: newAvailable, isAvailable: newAvailable > 0 };
+        targetItem = { ...item, available: newAvailable, isAvailable: newAvailable > 0 };
+        return targetItem;
       }
       return item;
     });
     saveMenuItems(newItems);
+    if (targetItem) {
+      saveProductToCloud(targetItem).catch((err) =>
+        console.error('Failed to sync stock to Cloud:', err)
+      );
+    }
   };
 
   const resetDefaultMenu = () => {
