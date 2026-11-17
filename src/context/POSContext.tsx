@@ -68,7 +68,7 @@ interface POSContextType {
 
 const POSContext = createContext<POSContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = 'cornfu_cafe_menu_v13';
+const LOCAL_STORAGE_KEY = 'cornfu_cafe_menu_v14';
 const LOCAL_STORAGE_ORDERS_KEY = 'cornfu_cafe_orders_v1';
 const LOCAL_STORAGE_PRINTER_KEY = 'cornfu_cafe_printer_v1';
 
@@ -105,7 +105,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     // 1. Immediate local load so the user sees the menu in 0ms without waiting for network
     try {
-      for (let i = 1; i <= 12; i++) {
+      for (let i = 1; i <= 13; i++) {
         localStorage.removeItem(`cornfu_cafe_menu_v${i}`);
       }
 
