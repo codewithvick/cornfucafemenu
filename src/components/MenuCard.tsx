@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Edit2, Sparkles } from 'lucide-react';
 import { MenuItem } from '../types';
@@ -19,6 +19,10 @@ export const MenuCard: React.FC<MenuCardProps> = ({ item }) => {
   } = usePOS();
 
   const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [item.image]);
 
   const fallbackImage =
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
@@ -44,7 +48,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({ item }) => {
           src={imageError ? fallbackImage : item.image || fallbackImage}
           alt={item.name}
           fill
-          unoptimized={Boolean(item.image?.startsWith('/'))}
+          unoptimized
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           onError={() => setImageError(true)}

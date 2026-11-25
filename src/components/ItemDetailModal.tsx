@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { X, Edit2, Sparkles, UtensilsCrossed } from 'lucide-react';
 import { usePOS } from '../context/POSContext';
@@ -16,6 +16,10 @@ export const ItemDetailModal: React.FC = () => {
 
   const [selectedSize, setSelectedSize] = useState<'500ml' | '700ml'>('500ml');
   const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [selectedItemForDetail?.image]);
 
   if (!selectedItemForDetail) return null;
 
@@ -66,7 +70,7 @@ export const ItemDetailModal: React.FC = () => {
             src={imageError ? fallbackImage : item.image || fallbackImage}
             alt={item.name}
             fill
-            unoptimized={Boolean(item.image?.startsWith('/'))}
+            unoptimized
             sizes="(max-width: 768px) 100vw, 500px"
             className="object-cover"
             onError={() => setImageError(true)}
